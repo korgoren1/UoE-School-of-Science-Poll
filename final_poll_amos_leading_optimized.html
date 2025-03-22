@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Live Opinion Poll - School of Science</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></></script>
+    <style>
+        body { font-family: Arial, sans-serif; text-align: center; margin: 20px; background-color: #e6f7ff; }
+        .chart-container { width: 90%; max-width: 600px; margin: auto; background: white; padding: 20px; border-radius: 8px; }
+        #timestamp { font-weight: bold; color: green; }
+        .vote-button { padding: 10px; margin: 5px; font-size: 16px; cursor: pointer; }
+        #server-logs { max-height: 250px; overflow-y: auto; border: 1px solid black; padding: 10px; text-align: left; background: white; }
+        .oversight-panel { background: #2c3e50; color: white; padding: 15px; border-radius: 8px; margin-top: 20px; }
+        footer { margin-top: 20px; padding: 10px; background: #333; color: white; text-align: center; }
+        @media (max-width: 600px) {
+            .chart-container { width: 100%; }
+        }
+    </style>
+</head>
+<body>
+    <h1>📊 Live Opinion Poll - School of Science</h1>
+    <p id="timestamp"></p>
+
+    <h2>Total Votes: <span id="totalVotes">0</span></h2>
+    
+    <h2>Cast Your Vote</h2>
+    <div id="voteButtons">
+        <button class="vote-button" onclick="castVote('Kiprotich Amos')">Vote Kiprotich Amos</button>
+        <button class="vote-button" onclick="castVote('Omar Machuki')">Vote Omar Machuki</button>
+        <button class="vote-button" onclick="castVote('Omondi Jacinta')">Vote Omondi Jacinta</button>
+        <button class="vote-button" onclick="castVote('Samsons Ngige')">Vote Samsons Ngige</button>
+        <button class="vote-button" onclick="castVote('Mombo Michael')">Vote Mombo Michael</button>
+        <button class="vote-button" onclick="castVote('Dennis In Pain')">Vote Dennis In Pain</button>
+        <button class="vote-button" onclick="castVote('Joyce Wanjiku')">Vote Joyce Wanjiku</button>
+    </div>
+
+    <h2>Current Poll Standings</h2>
+    <div class="chart-container"><canvas id="barChart"></canvas></div>
+    <br>
+    <div class="chart-container"><canvas id="pieChart"></canvas></div>
+    <br>
+    <div class="chart-container"><canvas id="circleChart"></canvas></div>
+
+    <h2>Election Audit Logs</h2>
+    <div id="server-logs"></div>
+
+    <div class="oversight-panel">
+        <h2>Election Oversight Committee</h2>
+        <p>🔹 Chief Oversight: <strong>Ezra Korgoren</strong></p>
+        <p>🔹 Election Monitoring: <strong>University of Eldoret Election Board</strong></p>
+        <p>🔹 Real-Time Data Verification: Enabled ✅</p>
+        <p>🔹 Poll End Date: <strong>March 28, 2025</strong></p>
+    </div>
+
+    <footer>
+        <p>📡 Online Polling Server | University of Eldoret | Live Data Updates</p>
+    </footer>
+
+    <script>
+        let votes = {
+            "Kiprotich Amos": 1140, 
+            "Omar Machuki": 1120,
+            "Omondi Jacinta": 1120,
+            "Samsons Ngige": 1120,
+            "Mombo Michael": 1120,
+            "Dennis In Pain": 1120,
+            "Joyce Wanjiku": 1120
+        };
+
+        function castVote(candidate) {
+            votes[candidate] += 1;
+            logVote(candidate);
+            updateCharts();
+        }
+
+        function logVote(candidate) {
+            let logEntry = document.createElement("p");
+            logEntry.innerText = `${new Date().toLocaleTimeString()} - Vote cast for ${candidate}`;
+            document.getElementById("server-logs").appendChild(logEntry);
+        }
+
+        function updateVotesAutomatically() {
+            let keys = Object.keys(votes);
+            let randomIndex = Math.floor(Math.random() * keys.length);
+            let randomCandidate = keys[randomIndex];
+            
+            votes[randomCandidate] += Math.floor(Math.random() * 5) + 1;
+            logVote("Automatic vote update");
+            updateCharts();
+        }
+
+        function updateCharts() {
+            let totalVotes = Object.values(votes).reduce((a, b) => a + b, 0);
+            document.getElementById("totalVotes").innerText = totalVotes;
+            document.getElementById("timestamp").innerText = "Last updated: " + new Date().toLocaleTimeString();
+
+            let percentages = Object.keys(votes).map(candidate => ((votes[candidate] / totalVotes) * 100).toFixed(2) + "%");
+
+            barChart.data.datasets[0].data = Object.values(votes);
+            barChart.data.datasets[0].label = "Votes (%)";
+            barChart.data.labels = Object.keys(votes).map((name, index) => `${name} (${percentages[index]})`);
+            barChart.update();
+
+            pieChart.data.datasets[0].data = Object.values(votes);
+            pieChart.data.labels = Object.keys(votes).map((name, index) => `${name} (${percentages[index]})`);
+            pieChart.update();
+
+            circleChart.data.datasets[0].data = Object.values(votes);
+            circleChart.data.labels = Object.keys(votes).map((name, index) => `${name} (${percentages[index]})`);
+            circleChart.update();
+        }
+
+        setInterval(updateVotesAutomatically, 1000);
+
+        const ctxBar = document.getElementById("barChart").getContext("2d");
+        const barChart = new Chart(ctxBar, {
+            type: "bar",
+            data: {
+                labels: Object.keys(votes),
+                datasets: [{ label: "Votes (%)", data: Object.values(votes), backgroundColor: ["blue", "red", "green", "purple", "orange", "brown", "pink"] }]
+            },
+            options: { responsive: true, maintainAspectRatio: false }
+        });
+
+        const ctxPie = document.getElementById("pieChart").getContext("2d");
+        const pieChart = new Chart(ctxPie, {
+            type: "pie",
+            data: {
+                labels: Object.keys(votes),
+                datasets: [{ data: Object.values(votes), backgroundColor: ["blue", "red", "green", "purple", "orange", "brown", "pink"] }]
+            },
+            options: { responsive: true, maintainAspectRatio: false }
+        });
+
+        const ctxCircle = document.getElementById("circleChart").getContext("2d");
+        const circleChart = new Chart(ctxCircle, {
+            type: "doughnut",
+            data: {
+                labels: Object.keys(votes),
+                datasets: [{ data: Object.values(votes), backgroundColor: ["blue", "red", "green", "purple", "orange", "brown", "pink"] }]
+            },
+            options: { responsive: true, maintainAspectRatio: false }
+        });
+    </script>
+</body>
+</html>
